@@ -26,16 +26,14 @@ secrecy = {version = "0.8", features = ["serde"]}
 tracing-actix-web = "0.6"
 
 [dependencies.sqlx]
-version = "0.6"
-default-features = false
+version = "0.8"
 features = [
-    "runtime-actix-rustls",
+    "runtime-tokio-rustls",
     "macros",
     "postgres",
     "uuid",
     "chrono",
-    "migrate",
-    "offline"
+    "migrate"
 ]
 
 [dev-dependencies]
