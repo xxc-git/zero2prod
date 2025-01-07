@@ -10,7 +10,7 @@ async fn main() ->std::io::Result<()> {
     let subscriber = get_subscriber(
         "zero2prod".into(),
         "info".into(),
-        std::fs::File::create("log.txt").unwrap()
+        std::io::stdout
     );
     init_subscriber(subscriber);
 
