@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: newsletter
+    ports:
+      - "5432:5432"
+
+
+  zero2prod:
+    image: zero2prod:latest
+    container_name: zero2prod
+    depends_on:
+      - postgres
+    environment:
+      APP_DATABASE__HOST: postgres
+    ports:
+      - "8000:8000"
+
+
