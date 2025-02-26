@@ -3,6 +3,7 @@ use once_cell::sync::Lazy;
 use sqlx::{Connection, PgConnection, PgPool, Executor};
 use zero2prod::configuration::{self, DatabaseSettings};
 use zero2prod::telemetry;
+use zero2prod::email_client::EmailClient;
 
 
 struct TestApp {
@@ -60,11 +61,23 @@ async fn spawn_app() -> TestApp {
     let address = format!("http://127.0.0.1:{}", port);
 
     let mut configuration = configuration::get_configuration().expect("Failed to read configuration.");
-    configuration.database.database_name = uuid::Uuid::new_v4().to_string();
 
+    let sender_email = configuration.email_client.sender().expect("Invalid email");
+    let email_client = EmailClient::new(
+        configuration.email_client.base_url,
+        sender_email,
+        configuration.email_client.auth_token
+    );
+
+    configuration.database.database_name = uuid::Uuid::new_v4().to_string();
     let db_pool = configure_database(&configuration.database).await; 
 
-    let server = zero2prod::startup::run(listener, db_pool.clone()).expect("Failed to bind address");
+    let server = zero2prod::startup::run(
+        listener,
+        db_pool.clone(),
+        email_client
+    )
+    .expect("Failed to bind address");
     tokio::spawn(server);
     
     TestApp {
