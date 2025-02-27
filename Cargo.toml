@@ -27,7 +27,7 @@ unicode-segmentation = "1.12.0"
 claim = "0.5.0"
 validator = "0.20.0"
 reqwest = { version = "0.12.12", features = ["json", "rustls-tls"]}
-lettre = "0.11.14"
+lettre = { version = "0.11.14", features = ["tokio1", "tokio1-native-tls"]}
 
 
 [dependencies.sqlx]

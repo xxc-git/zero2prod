@@ -1,4 +1,10 @@
-use lettre::{message::header::ContentType, transport::smtp::authentication::Credentials, Message, SmtpTransport, Transport};
+use lettre::{
+    message::header::ContentType,
+    transport::smtp::authentication::Credentials,
+    AsyncSmtpTransport,
+    AsyncTransport, Message,
+    Tokio1Executor,
+};
 
 use crate::domain::SubscriberEmail;
 
@@ -19,14 +25,14 @@ impl EmailSmtp {
         &self,
         recipient: SubscriberEmail,
         subject: &str,
-        content: String
+        content: &str
     ) -> Result<(), String> {
         let creds = Credentials::new(
             self.sender.as_ref().to_string(),
-            self.amtp_token 
+            self.amtp_token.clone() 
             );
 
-        let mailer = SmtpTransport::relay("smtp.qq.com")
+        let mailer = AsyncSmtpTransport::<Tokio1Executor>::relay("smtp.qq.com")
             .unwrap()
             .port(465)
             .credentials(creds)
@@ -38,12 +44,15 @@ impl EmailSmtp {
         let email = Message::builder()
             .from(from)
             .to(to)
-            .subject(subject)
             .header(ContentType::TEXT_HTML)
-            .body(content)
+            .subject(subject)
+            .body(content.to_string())
             .expect("Failed to build a message.");
 
-        mailer.send(&email)?;
+        mailer.send(email).await
+            .map_err(|e| {
+                format!("Failed to send email {:?}", e)
+            })?;
 
         Ok(())
     }
@@ -52,16 +61,28 @@ impl EmailSmtp {
 
 #[cfg(test)]
 mod tests {
-    use crate::configuration::get_configuration;
-
     use super::*;
 
     #[tokio::test]
     async fn test_send_email_function() {
-        let sender_email = SubscriberEmail::parse("tasmira@qq.com".to_string()).expect("Failed to parse email");
-        let config = get_configuration().expect("Failed read conifuration files.");
-        let sender = EmailSmtp::new(sender_email, config.) 
+        let sender_email = SubscriberEmail::parse(
+            "tasmira@qq.com".to_string()
+        ).expect("Failed to parse email");
 
+        let amtp_token = "rxgyvqgheubxfdje".to_string();
+
+        let sender = EmailSmtp::new(sender_email, amtp_token);
+
+        let recipient_email = SubscriberEmail::parse(
+            "2317424838@qq.com".to_string()
+        ).expect("Failed to parse email.");
+
+        let subject = "Email test";
+        let content = "The message is from Rust.";
+
+        claim::assert_ok!(
+            sender.send_email(recipient_email, subject, content).await
+        );
     }
 
 }
