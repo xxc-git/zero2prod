@@ -3,7 +3,7 @@ use std::ops::DerefMut;
 use rand::{distr::Alphanumeric, Rng};
 use serde::Deserialize;
 use actix_web::{web, HttpResponse};
-use sqlx::{PgPool, Transaction, Executor};
+use sqlx::{PgPool, Transaction};
 use uuid::Uuid;
 use chrono::Utc;
 use crate::{domain::{NewSubscriber, SubscriberEmail, SubscriberName}, email_client::EmailClient, startup::ApplicationBaseUrl};
